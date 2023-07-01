@@ -44,7 +44,22 @@ function render() {
   const myXRsession = renderer.xr.getSession();
 
   if (myXRsession) {
-    const myString = "VR session is ON";
+    let myString = "VR session is ON";
+
+    myString += "\ninput sources found: " + myXRsession.inputSources.length
+
+    myXRsession.inputSources.forEach((mySource, i) => {
+      myString += "\n\ninput source " + i
+
+      if (mySource.gamepad) {
+        mySource.gamepad.axes.forEach((axisValue, j) => {
+          myString += "\naxis " + j + " value: " + axisValue
+        })
+        mySource.gamepad.buttons.forEach((myButton, k) => {
+          myString += "\nbutton " + k + " pressed: " + myButton.pressed + ", touched: " + myButton.touched + ", value = " + myButton.value
+        })
+      }
+    })
 
     // Qui dovremmo iterare l'array myXRsession.inputSources, ma il browser del Quest2 si blocca!
 
