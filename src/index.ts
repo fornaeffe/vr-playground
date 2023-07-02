@@ -61,7 +61,7 @@ function render() {
       }
     })
 
-    // Qui dovremmo iterare l'array myXRsession.inputSources, ma il browser del Quest2 si blocca!
+    
 
     myText.text = myString;
 
