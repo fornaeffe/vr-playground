@@ -1,75 +1,67 @@
 import * as THREE from 'three';
-import {Text} from 'troika-three-text'
 import { VRButton } from 'three/examples/jsm/webxr/VRButton.js';
-
-// Parameters
-const posy = 1.4; // y info position
-const posz = -1; // z info position
+import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
+import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 
 // Create the scene
 const scene = new THREE.Scene();
 
+// Create axes helper
+scene.add( new THREE.AxesHelper())
+
+// Create light
+const light = new THREE.DirectionalLight()
+light.position.set(1, 2, 1)
+scene.add(light)
+
 // Create the camera
 const camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 0.1, 1000 );
-camera.position.set(0, posy, posz + 1);
-
-// Create:
-const myText = new Text();
-scene.add(myText);
-
-// Set properties to configure:
-myText.text = 'Waiting VR session';
-myText.fontSize = 0.05;
-myText.position.set(-0.5, posy, posz);
-myText.color = 0x9966FF;
-
-// Update the rendering:
-myText.sync();
-
+camera.position.set(0, 0, 2);
 
 // Create the renderer and enable XR
 const renderer = new THREE.WebGLRenderer();
 renderer.setSize( window.innerWidth, window.innerHeight );
 renderer.xr.enabled = true;
 
-
 // Append the renderer and the VR button to the page
 document.body.appendChild( renderer.domElement );
 document.body.appendChild( VRButton.createButton( renderer ) );
 
-const controller0 = renderer.xr.getController(0)
+// Orbit Controls
+const controls = new OrbitControls( camera, renderer.domElement );
 
 // Rendering loop
 function render() {
-  const myXRsession = renderer.xr.getSession();
-
-  if (myXRsession) {
-    let myString = "VR session is ON";
-
-    myString += "\ninput sources found: " + myXRsession.inputSources.length
-
-    myXRsession.inputSources.forEach((mySource, i) => {
-      myString += "\n\ninput source " + i
-
-      if (mySource.gamepad) {
-        mySource.gamepad.axes.forEach((axisValue, j) => {
-          myString += "\naxis " + j + " value: " + axisValue
-        })
-        mySource.gamepad.buttons.forEach((myButton, k) => {
-          myString += "\nbutton " + k + " pressed: " + myButton.pressed + ", touched: " + myButton.touched + ", value = " + myButton.value
-        })
-      }
-    })
-
-    
-
-    myText.text = myString;
-
-
-    myText.sync();
-  }
-
   renderer.render( scene, camera );
 }
 
 renderer.setAnimationLoop(render)
+
+// Resizer
+function resize() {	
+  const aspect_ratio = window.innerWidth / window.innerHeight      
+  renderer.setSize( window.innerWidth, window.innerHeight )
+  camera.aspect = aspect_ratio
+  camera.updateProjectionMatrix()
+}
+window.addEventListener('resize', () => resize())
+
+
+// Function that loads model
+const fileInput = document.getElementById('file') as HTMLInputElement
+fileInput.addEventListener('change', (e) => loadModel((e.target as HTMLInputElement).files![0]))
+function loadModel(file: File) {
+    const url = URL.createObjectURL(file)
+
+    const loader = new GLTFLoader()
+    
+    loader.load( url, function ( gltf ) {
+    	scene.add( gltf.scene );
+        console.log('Model loaded')
+
+    }, undefined, function ( error ) {
+
+    	console.error( error );
+
+    } );
+}
