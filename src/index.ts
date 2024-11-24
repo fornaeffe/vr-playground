@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import { VRButton } from 'three/examples/jsm/webxr/VRButton.js';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
+import { OBJLoader } from 'three/examples/jsm/loaders/OBJLoader.js';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 
 // Create the scene
@@ -15,8 +16,31 @@ light.position.set(1, 2, 1)
 scene.add(light)
 
 // Create the camera
-const camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 0.1, 1000 );
+const camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 0.1, 100000000 );
 camera.position.set(0, 0, 2);
+
+const innerCore = new THREE.Mesh(
+  new THREE.SphereGeometry( (6378 - 5100)*1000 ),
+  new THREE.MeshBasicMaterial( {color: 0xffff00})
+)
+const outerCore = new THREE.Mesh(
+  new THREE.SphereGeometry( (6378 - 2890)*1000 ),
+  new THREE.MeshBasicMaterial( {color: 0xcccc00, transparent: true, opacity: 0.5})
+)
+const mantle = new THREE.Mesh(
+  new THREE.SphereGeometry( (6378 - 60)*1000 ),
+  new THREE.MeshBasicMaterial( {color: 0xff0000, transparent: true, opacity: 0.5})
+)
+const litosphere = new THREE.Mesh(
+  new THREE.SphereGeometry( 6378 * 1000 ),
+  new THREE.MeshBasicMaterial( {color: 0x808080, transparent: true, opacity: 0.25})
+)
+const earth = new THREE.Group()
+earth.add(innerCore, outerCore, mantle, litosphere)
+earth.position.y = - 6378 * 1000
+scene.add(earth)
+
+
 
 // Create the renderer and enable XR
 const renderer = new THREE.WebGLRenderer();
@@ -53,10 +77,21 @@ fileInput.addEventListener('change', (e) => loadModel((e.target as HTMLInputElem
 function loadModel(file: File) {
     const url = URL.createObjectURL(file)
 
-    const loader = new GLTFLoader()
+    //const loader = new GLTFLoader()
+    const loader = new OBJLoader()
     
-    loader.load( url, function ( gltf ) {
-    	scene.add( gltf.scene );
+    // loader.load( url, function ( gltf ) {
+    // 	scene.add( gltf.scene );
+    //     console.log('Model loaded')
+
+    // }, undefined, function ( error ) {
+
+    // 	console.error( error );
+
+    // } );
+
+    loader.load( url, function ( obj ) {
+    	scene.add( obj );
         console.log('Model loaded')
 
     }, undefined, function ( error ) {
